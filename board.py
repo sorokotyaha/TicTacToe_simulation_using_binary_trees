@@ -144,24 +144,19 @@ class Board:
         """
         return self._grid.num_cols()
 
-    def configure(self, coord_list, value):
+    def configure(self, coord_list, value=None):
         """
-        Configures the grid to contain the given cross cells.
-
-        :param coord_list:
-        :return:
+        Configures the grid to contain the given value cells.
+        :param coord_list: list
+        :return: Board
         """
-        numRows = self.numRows()
-        numCols = self.numCols()
-        # Clear the game grid.
-        for i in range(numRows):
-
-            for j in range(numCols):
-                self.clear_cell(i, j)
-
+        if not coord_list:
+            return self
         # Set the indicated cells to be alive.
         for coord in coord_list:
             self._grid[coord[0], coord[1]] = value
+        return self
+       
 
     def is_cross_cell(self, row, col):
         """
@@ -220,38 +215,51 @@ class Board:
         free_cells = []
         for row in range(self.numRows()):
             for col in range(self.numCols()):
-                if not self._grid[row, col]:
+                if self._grid[row, col] == None:
                     free_cells.append((row, col))
         return free_cells
-
-    def check_for_win_combos(self):
+    
+    def is_full(self):
         """
-        This method checks if there are three cells of the ZERO type
+        Returns True if there is no more free cells left
+        and False otherwise
+        :return: bool
+        """
+        if not self.get_free_cells():
+            return True
+        return False
+
+    def check_for_win_combos(self, value=None):
+        """
+        This method checks if there are three cells of the value type
+        (ZERO_CELL by default)
         in a row, column or diagonally. Returns True if there is, False otherwise
         :return: bool
         """
+        if not value:
+            value = Board.ZERO_CELL
         # check center position
-        if self.is_zero_cell(1, 1):
+        if self._grid[1, 1] == value:
             # check diagonals
-            if (self.is_zero_cell(0, 0) and self.is_zero_cell(2, 2)) or\
-               (self.is_zero_cell(0, 2) and self.is_zero_cell(2, 0)):
+            if self._grid[0, 0] == self._grid[2, 2] == value or\
+               self._grid[0, 2] == self._grid[2, 0] == value:
                 return True
             # check cross
-            if (self.is_zero_cell(0, 1) and self.is_zero_cell(2, 1)) or\
-               (self.is_zero_cell(1, 0) and self.is_zero_cell(1, 2)):
+            if self._grid[0, 1] == self._grid[2, 1] == value or\
+               self._grid[1, 0] == self._grid[1, 2] == value:
                 return True
         else:
             # check for side columns and side rows
-            if (self.is_zero_cell(0,0) and self.is_zero_cell(0, 1) and\
-                self.is_zero_cell(0, 2)) or (self.is_zero_cell(2, 0) and\
-                    self.is_zero_cell(2, 1) and self.is_zero_cell(2, 2)):
+            if (self._grid[0,0] == self._grid[0, 1] == value and\
+                self._grid[0, 2] == value) or (self._grid[2, 0] == value and\
+                self._grid[2, 1] == self._grid[2, 2] == value):
                 return True
-            if (self.is_zero_cell(0, 0) and self.is_zero_cell(1, 0) and\
-                    self.is_zero_cell(2, 0)) or (self.is_zero_cell(0, 2) and\
-                    self.is_zero_cell(1, 2) and self.is_zero_cell(2, 2)):
+            if (self._grid[0, 0] == self._grid[1, 0] and\
+                self._grid[2, 0] == value) or (self._grid[0, 2] == value and\
+                self._grid[1, 2] == self._grid[2, 2] == value):
                 return True
         return False
-
+    
 
     def __str__(self):
         line = ''
@@ -259,10 +267,11 @@ class Board:
             for x in range(self.numCols()):
                 if self.is_cross_cell(x, y):
                     line += "X "
-                else:
+                elif self.is_zero_cell(x, y):
                     line += "0 "
+                else:
+                    line += "- "
             line += "\n"
-
         return line
 
 
